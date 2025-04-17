@@ -1,0 +1,451 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Ứng dụng luyện tập Guitar</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+            text-align: center;
+            background-color: #f5f5f5;
+        }
+        .container {
+            background-color: white;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 0 10px rgba(0,0,0,0.1);
+        }
+        h1 {
+            color: #333;
+        }
+        .input-area {
+            margin-bottom: 20px;
+            text-align: left;
+        }
+        textarea {
+            width: 100%;
+            height: 100px;
+            padding: 10px;
+            box-sizing: border-box;
+            margin-top: 5px;
+            border-radius: 5px;
+            border: 1px solid #ddd;
+        }
+        label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: bold;
+        }
+        input[type="number"] {
+            width: 100px;
+            padding: 8px;
+            border-radius: 5px;
+            border: 1px solid #ddd;
+        }
+        button {
+            background-color: #4CAF50;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            text-align: center;
+            text-decoration: none;
+            display: inline-block;
+            font-size: 16px;
+            margin: 10px 5px;
+            cursor: pointer;
+            border-radius: 5px;
+            transition: background-color 0.3s;
+        }
+        button:hover {
+            background-color: #45a049;
+        }
+        button:disabled {
+            background-color: #cccccc;
+            cursor: not-allowed;
+        }
+        .display-area {
+            margin-top: 30px;
+            border-top: 1px solid #ddd;
+            padding-top: 20px;
+        }
+        .note-display {
+            font-size: 120px;
+            font-weight: bold;
+            margin: 30px 0;
+            height: 150px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #333;
+        }
+        .controls {
+            margin-top: 20px;
+        }
+        .status {
+            margin-top: 10px;
+            font-style: italic;
+            color: #666;
+        }
+        .helper-text {
+            font-size: 14px;
+            color: #666;
+            margin-top: 5px;
+        }
+        .metronome {
+            margin-top: 20px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+        .beat-indicator {
+            display: flex;
+            justify-content: center;
+            margin-top: 10px;
+            margin-bottom: 20px;
+        }
+        .beat {
+            width: 20px;
+            height: 20px;
+            border-radius: 50%;
+            background-color: #ddd;
+            margin: 0 10px;
+        }
+        .beat.active {
+            background-color: #ff5722;
+            transform: scale(1.2);
+            transition: background-color 0.1s, transform 0.1s;
+        }
+        .time-signature {
+            margin: 15px 0;
+        }
+        .time-signature label {
+            display: inline-block;
+            margin-right: 15px;
+        }
+        .time-signature input[type="radio"] {
+            margin-right: 5px;
+        }
+        .settings-panel {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: space-between;
+            align-items: flex-start;
+            margin-bottom: 20px;
+        }
+        .setting-group {
+            flex: 1;
+            min-width: 200px;
+            margin: 10px;
+            padding: 15px;
+            background-color: #f9f9f9;
+            border-radius: 5px;
+        }
+        .volume-control {
+            display: flex;
+            align-items: center;
+            margin-top: 10px;
+        }
+        .volume-control label {
+            margin-right: 10px;
+            display: inline;
+        }
+        .volume-control input {
+            flex: 1;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Ứng dụng luyện tập Guitar</h1>
+        
+        <div class="settings-panel">
+            <div class="setting-group">
+                <label for="notes">Nhập các nốt muốn luyện tập:</label>
+                <textarea id="notes" placeholder="Nhập các nốt cách nhau bằng dấu phẩy (ví dụ: A4, B4, C5, D4...)"></textarea>
+                <div class="helper-text">Ví dụ: A4, B4, C5, D4, E4, F4, G4...</div>
+            </div>
+            
+            <div class="setting-group">
+                <div>
+                    <label for="tempo">Tempo (BPM):</label>
+                    <input type="number" id="tempo" min="30" max="240" value="60">
+                </div>
+                
+                <div class="time-signature">
+                    <p><strong>Loại nhịp:</strong></p>
+                    <label><input type="radio" name="timeSignature" value="2/4" checked> 2/4</label>
+                    <label><input type="radio" name="timeSignature" value="3/4"> 3/4</label>
+                    <label><input type="radio" name="timeSignature" value="4/4"> 4/4</label>
+                </div>
+                
+                <div class="volume-control">
+                    <label for="volume">Âm lượng:</label>
+                    <input type="range" id="volume" min="0" max="1" step="0.1" value="0.5">
+                </div>
+            </div>
+        </div>
+        
+        <button id="startBtn">Bắt đầu</button>
+        <button id="stopBtn" disabled>Dừng</button>
+        
+        <div class="display-area">
+            <div class="metronome">
+                <div class="beat-indicator" id="beatIndicator">
+                    <!-- Các dấu nhịp sẽ được thêm vào bằng JavaScript -->
+                </div>
+            </div>
+            
+            <div class="note-display" id="noteDisplay">--</div>
+            <div class="status" id="status">Hãy nhập các nốt và nhấn "Bắt đầu" để luyện tập</div>
+        </div>
+    </div>
+
+    <script>
+        // Các biến toàn cục
+        let notes = [];
+        let isPlaying = false;
+        let currentBeat = 0;
+        let beatsPerMeasure = 4; // Mặc định là 4/4
+        let beatElements = [];
+        let metronomeIntervalId = null;
+        
+        // Âm thanh
+        const audioContext = new (window.AudioContext || window.webkitAudioContext)();
+        
+        // Hàm tạo âm thanh click metronome
+        function createClickSound(frequency, duration) {
+            return function() {
+                const oscillator = audioContext.createOscillator();
+                const gainNode = audioContext.createGain();
+                
+                oscillator.type = 'sine';
+                oscillator.frequency.value = frequency;
+                
+                gainNode.gain.value = parseFloat(document.getElementById('volume').value);
+                
+                oscillator.connect(gainNode);
+                gainNode.connect(audioContext.destination);
+                
+                oscillator.start();
+                
+                // Giảm dần âm thanh
+                gainNode.gain.exponentialRampToValueAtTime(
+                    0.001, audioContext.currentTime + duration
+                );
+                
+                // Dừng âm thanh sau khoảng thời gian nhất định
+                setTimeout(() => {
+                    oscillator.stop();
+                }, duration * 1000);
+            };
+        }
+        
+        // Âm thanh click cho nhịp mạnh và nhịp yếu
+        const playAccentClick = createClickSound(1200, 0.1);
+        const playNormalClick = createClickSound(800, 0.1);
+        
+        // Lấy tham chiếu đến các phần tử DOM
+        const notesInput = document.getElementById('notes');
+        const tempoInput = document.getElementById('tempo');
+        const startBtn = document.getElementById('startBtn');
+        const stopBtn = document.getElementById('stopBtn');
+        const noteDisplay = document.getElementById('noteDisplay');
+        const statusDisplay = document.getElementById('status');
+        const beatIndicator = document.getElementById('beatIndicator');
+        const volumeControl = document.getElementById('volume');
+        const timeSignatureInputs = document.getElementsByName('timeSignature');
+        
+        // Hàm khởi tạo
+        function init() {
+            // Bắt sự kiện cho radio button thay đổi loại nhịp
+            timeSignatureInputs.forEach(input => {
+                input.addEventListener('change', updateTimeSignature);
+            });
+            
+            // Thiết lập ban đầu cho loại nhịp
+            updateTimeSignature();
+            
+            // Sự kiện cho các nút
+            startBtn.addEventListener('click', startPractice);
+            stopBtn.addEventListener('click', stopPractice);
+        }
+        
+        // Cập nhật loại nhịp
+        function updateTimeSignature() {
+            // Xóa các dấu nhịp cũ
+            beatIndicator.innerHTML = '';
+            beatElements = [];
+            
+            // Lấy loại nhịp đã chọn
+            let selectedTimeSignature;
+            timeSignatureInputs.forEach(input => {
+                if (input.checked) {
+                    selectedTimeSignature = input.value;
+                }
+            });
+            
+            // Thiết lập số nhịp dựa trên loại nhịp
+            switch(selectedTimeSignature) {
+                case '2/4':
+                    beatsPerMeasure = 2;
+                    break;
+                case '3/4':
+                    beatsPerMeasure = 3;
+                    break;
+                case '4/4':
+                default:
+                    beatsPerMeasure = 4;
+                    break;
+            }
+            
+            // Tạo các phần tử hiển thị nhịp
+            for (let i = 0; i < beatsPerMeasure; i++) {
+                const beat = document.createElement('div');
+                beat.className = 'beat';
+                beatIndicator.appendChild(beat);
+                beatElements.push(beat);
+            }
+            
+            // Cập nhật trạng thái
+            currentBeat = 0;
+        }
+        
+        // Bắt đầu luyện tập
+        function startPractice() {
+            // Kiểm tra các giá trị nhập vào
+            const inputText = notesInput.value.trim();
+            if (!inputText) {
+                alert('Vui lòng nhập các nốt để luyện tập!');
+                return;
+            }
+            
+            // Phân tách chuỗi thành mảng các nốt
+            notes = inputText.split(',').map(note => note.trim()).filter(note => note);
+            
+            if (notes.length === 0) {
+                alert('Không tìm thấy nốt hợp lệ. Vui lòng nhập lại!');
+                return;
+            }
+            
+            // Lấy giá trị tempo
+            const tempo = parseInt(tempoInput.value);
+            if (isNaN(tempo) || tempo < 30 || tempo > 240) {
+                alert('Tempo phải là một số từ 30 đến 240 BPM');
+                return;
+            }
+            
+            // Tính thời gian giữa các nhịp (miligiây)
+            const beatInterval = 60000 / tempo;
+            
+            // Bắt đầu metronome và thay đổi nốt theo nhịp
+            startMetronomeAndNotes(beatInterval);
+            
+            // Cập nhật trạng thái giao diện
+            startBtn.disabled = true;
+            stopBtn.disabled = false;
+            notesInput.disabled = true;
+            tempoInput.disabled = true;
+            timeSignatureInputs.forEach(input => {
+                input.disabled = true;
+            });
+            statusDisplay.textContent = `Đang chạy ở tempo ${tempo} BPM, nhịp ${getSelectedTimeSignature()}`;
+            isPlaying = true;
+        }
+        
+        // Dừng luyện tập
+        function stopPractice() {
+            if (metronomeIntervalId !== null) {
+                clearInterval(metronomeIntervalId);
+                metronomeIntervalId = null;
+                
+                // Đặt lại trạng thái visual
+                beatElements.forEach(beat => {
+                    beat.classList.remove('active');
+                });
+                
+                noteDisplay.textContent = '--';
+            }
+            
+            // Cập nhật trạng thái giao diện
+            startBtn.disabled = false;
+            stopBtn.disabled = true;
+            notesInput.disabled = false;
+            tempoInput.disabled = false;
+            timeSignatureInputs.forEach(input => {
+                input.disabled = false;
+            });
+            statusDisplay.textContent = 'Đã dừng';
+            isPlaying = false;
+        }
+        
+        // Lấy loại nhịp đã chọn
+        function getSelectedTimeSignature() {
+            let selected = '4/4'; // Mặc định
+            timeSignatureInputs.forEach(input => {
+                if (input.checked) {
+                    selected = input.value;
+                }
+            });
+            return selected;
+        }
+        
+        // Bắt đầu metronome và thay đổi nốt theo từng nhịp
+        function startMetronomeAndNotes(interval) {
+            // Đặt lại nhịp hiện tại
+            currentBeat = 0;
+            
+            // Hiển thị nốt đầu tiên ngay lập tức
+            displayRandomNote();
+            
+            // Cập nhật trực quan và phát âm thanh ngay lập tức
+            updateBeatVisual();
+            
+            // Thiết lập interval để metronome hoạt động và nốt thay đổi theo từng nhịp
+            metronomeIntervalId = setInterval(() => {
+                // Tăng nhịp hiện tại và quay lại từ đầu nếu cần
+                currentBeat = (currentBeat + 1) % beatsPerMeasure;
+                
+                // Hiển thị nốt mới trên mỗi nhịp
+                displayRandomNote();
+                
+                // Cập nhật trực quan và phát âm thanh
+                updateBeatVisual();
+            }, interval);
+        }
+        
+        // Cập nhật hiển thị nhịp
+        function updateBeatVisual() {
+            // Đặt lại tất cả các nhịp
+            beatElements.forEach(beat => {
+                beat.classList.remove('active');
+            });
+            
+            // Đánh dấu nhịp hiện tại
+            beatElements[currentBeat].classList.add('active');
+            
+            // Phát âm thanh tương ứng
+            if (currentBeat === 0) {
+                // Nhịp đầu tiên (nhịp mạnh)
+                playAccentClick();
+            } else {
+                // Các nhịp còn lại (nhịp yếu)
+                playNormalClick();
+            }
+        }
+        
+        // Hiển thị một nốt ngẫu nhiên từ danh sách
+        function displayRandomNote() {
+            const randomIndex = Math.floor(Math.random() * notes.length);
+            const randomNote = notes[randomIndex];
+            noteDisplay.textContent = randomNote;
+        }
+        
+        // Khởi tạo ứng dụng
+        window.addEventListener('load', init);
+    </script>
+</body>
+</html>
